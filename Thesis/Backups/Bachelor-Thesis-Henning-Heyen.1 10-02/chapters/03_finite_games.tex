@@ -1,0 +1,264 @@
+
+\chapter{Finite Games}\label{chapter:finiteGames}
+
+\begin{itemize}
+    \item high level description of an finite game
+    \item structure of this chapter
+\end{itemize}
+
+\begin{comment}
+    We are thus led to the following fundamental question: if all players of a repeated game employ a no-regret updating policy, do their actions converge to a Nash equilibrium of the underlying game? In general, the answer to this question is a resounding “no”. Even in simple, finite games, no-regret learning may cycle [27] and its limit set may contain highly non- rationalizable strategies that assign positive weight only to strictly dominated strategies [48]. As such, our aim in this paper is twofold \cite{mertikopoulos} p.466
+\end{comment}
+
+\section{Definition}\label{section:definition}
+
+We will consider finite games with mixed extension. That means allow the players to mix the actions they want to play. So strategies will be probability vectors. \\
+Formally, a finite game is a tuple $\Gamma \equiv (\mathcal{N}, {(\mathcal{A}_i})_{i\in\mathcal{N}},{(u_i)}_{i\in\mathcal{N}})$ where each \textit{player} $i \in \mathcal{N} = \{1,\dots,N\}$ chooses an \textit{action} $a_i$ from a finite set $\mathcal{A}_i$ of \textit{pure strategies}. Let $\mathcal{A} = \prod_{i}\mathcal{A}_i$ be the \textit{action space}. The \textit{player's payoff}, also called \textit{utility}, depends on all \textit{player's actions}. The \textit{payoff} is determined by a function $u_i : \mathcal{A} \to \mathbb{R} $. \\
+As already mentioned \textit{players} can also play \textit{mixed strategies}, i.e probability distributions $x_i$ drawn from the probability simplex $\mathcal{X}_i = \Delta(\mathcal{A}_i)$. In that case the expected \textit{payoff} of some \textit{player} $i$ depends on a \textit{mixed profile} $x = (x_1,\dots,x_N) \in \mathcal{X} = \prod_{i}\mathcal{X}_i$ and can be written as 
+
+\begin{equation*}
+    u_i(x) = \sum_{a_1\in\mathcal{A}_1}\dots\sum_{a_N\in\mathcal{A}_N} x_{1,a_1} \dots x_{N,a_N}u_i(a_1,\dots,a_N)
+\end{equation*}
+
+
+
+When we want to highlight that \textit{player} $i$ plays \textit{strategy} $x_i$ against all the other \textit{players} then the \textit{profile} is denoted by $x = (x_i,x_{-i})$ where $x_{-i} = {(x_j)}_{j\neq i}$ is the ensemble of \textit{strategies} selected by the other \textit{players}.\\
+
+Assuming $u_i$ to be continuously differentiable we write 
+
+\begin{equation*}
+    v_i(x) = \nabla_{x_i}u_i(x) = (u_i(a_i,x_{-i}))_{a_i\in\mathcal{A}_i}
+\end{equation*}
+
+for the \textit{individual gradient} of $u_i$ at $x$, which is simply the \textit{payoff} vector. \\
+
+\section{An Example}\label{section:anExample}
+
+Note that for two player games the easiest way to define a finite game is by drawing its \textit{payoff matrix}. For a better understanding lets consider an example. The game Rock Paper Scissors, for instance, has the following \textit{payoff matrix}.\\
+
+\begin{table}[H]\centering
+\setlength{\extrarowheight}{2pt}
+\begin{tabular}{cc|c|c|c|}
+  & \multicolumn{1}{c}{} & \multicolumn{1}{c}{$Rock$}  & \multicolumn{1}{c}{$Paper$}  & \multicolumn{1}{c}{$Scissors$} \\\cline{3-5}
+            & $Rock$ & $0,0$ & $-1,1$ & $1,-1$ \\ \cline{3-5}
+            & $Paper$ & $1,-1$ & $0,0$ & $-1,1$ \\\cline{3-5}
+            & $Scissors$ & $-1,1$ & $1,-1$ & $0,0$ \\\cline{3-5}
+\end{tabular}\caption{\label{tab:payoffRPSFromDefinition}\textit{payoff matrix} Rock Paper Scissors}
+\end{table}
+
+Obviously $\mathcal{N} = \{1,2\}$. Following the convention, we will call \textit{payer $1$} the \textit{row player} and \textit{player $2$} the \textit{column player} respectively. Both have the same \textit{action space} $\mathcal{A}_1 = \mathcal{A}_2 = \{\textit{Rock,Paper,Scissor}\} \equiv \{\textit{R,P,S\}}$, Lets abbreviate the actions due to readability. The utilities for \textit{pure strategies} are given in the \textit{payoff matrix}, where the first entries refer to the \textit{row player} and the second entries to the \textit{column player}. So for example, when the \textit{row player} selects \textit{Paper} while the \textit{column player} chooses \textit{Rock} then the \textit{row player} wins and the \textit{column player} looses. In formulas
+
+\begin{equation*}
+    u_1(\textit{P,R}) = 1 \qquad \text{and} \qquad u_2(\textit{P,R}) = -1
+\end{equation*}
+
+We can use matrix notation and write the \textit{utility} for \textit{mixed strategies} $x = (x_1,x_2)$ as
+
+\begin{equation*}
+    u_1(x) = x{_1}^{T}Ax_2 \qquad \text{and} \qquad u_2(x) = x{_2}^{T}Bx_1
+\end{equation*}
+
+where A,B are the \textit{pure strategy payoffs} from the \textit{payoff matrix} in \ref{tab:payoffRPSFromDefinition} for each player.
+
+\begin{equation*}
+A = \begin{pmatrix}
+0 & -1 & 1\\
+1 & 0 & -1\\
+-1 & 1 & 0
+\end{pmatrix}
+\qquad \text{and} \qquad
+B = \begin{pmatrix}
+0 & 1 & -1\\
+-1 & 0 & 1\\
+1 & -1 & 0
+\end{pmatrix}
+\end{equation*}
+
+Finally the \textit{individual gradients} for both \textit{players} are simply
+
+\begin{equation*}
+    v_1(x) = \nabla_{x_1}u_1(x) = Ax_2 \qquad \text{and} \qquad v_2(x) = \nabla_{x_2}u_2(x) = x_{1}^{T}B
+\end{equation*}
+
+\section{No Regret in Finite Games}\label{section:noRegretInFiniteGames}
+
+Lets assume a finite game is played over and over again and call this a \textit{repeated game} $\Gamma^{\infty}$. We can apply the concepts from chapter \ref{chapter:noRegretLearning} where each \textit{player} $i \in \mathcal{N}$ predicts a \textit{mixed strategy} $x_{i,t} \in \Delta(\mathcal{A}_i)$ in each iteration step $t$ simultaneously. Then the \textit{players} receive some kind of feedback, for instance the \textit{individual gradients} $v_{i}(x_t) = \nabla_{x_{i,t}}u_{i}(x_t)$. \\
+
+The notion of regret as in equation \ref{noRegretEquation} can be reformulated into a game theoretic context. Consider $x_t = (x_{1,t},\dots,x_{N,t})$ as the \textit{strategy profile} that was played in round $t$ where each $x_{i,t}$ denotes \textit{player} $i$'s \textit{mixed strategy} in round $t$. The \textit{regret} of \textit{player} $i \in \mathcal{N}$ is then defined as
+
+\begin{equation*}
+    Regret_{i,T}(\Delta) = \max_{x_i \in \Delta}\sum_{t=1}^{T} u_i(x_i,x_{-i,t}) - \sum_{t=1}^{T}u_i(x_t)
+\end{equation*}
+
+As the \textit{players'} goal is to maximize their \textit{utility} we turn the loss function from chapter \ref{chapter:noRegretLearning} into a reward function which is $u_i$. Thereby the "Descent" algorithms become "Ascent" algorithms. In particular we move in the positive direction of the gradient. This yields our slightly modified \textit{no-regret} algorithms for all \textit{players} $i \in \mathcal{N}$:
+
+\begin{figure}[H]\centering
+    \textit{Online Gradient Ascent \\ with Lazy Projections (OGALP)} 
+    \begin{minipage}{.7\linewidth}
+        \begin{algorithm}[H]
+        \DontPrintSemicolon
+        \textbf{parameter: } step size $\eta > 0$ \;
+        \textbf{initialize: } $\boldsymbol{\theta}_{i,1} = \textbf{0}$ \;
+        \For{$t = 1,2,\dots,$T} {
+        predict strategy $x_{i,t} = \argmin_{x \in \Delta} \|x - \eta\boldsymbol{\theta}_{i,t}\|_2$ \;
+        update $\boldsymbol{\theta}_{i,t+1} = \boldsymbol{\theta}_{i,t}- v_{i}(x_t)$ \;
+        }
+        \end{algorithm}\caption*{}
+  \end{minipage}
+\end{figure}
+
+\begin{figure}[H]\centering
+    \textit{Normalized Exponentiated Gradient (NEG)}
+    \begin{minipage}{.7\linewidth}
+        \begin{algorithm}[H]
+        \DontPrintSemicolon
+        \textbf{parameter: } step size $\eta > 0$ \;
+        \textbf{initialize: } $x_{i,0} =  \{w: \|w\|_1 = 1 \land w > 0\}$ \; 
+        \For{$t = 1,2,\dots,$T} { 
+        update $x_{i,t+1} = \scaleto{\frac{x_{i,t}[j]e^{\eta v_{i}(x_t)[j]}}{\sum_{k}x_{i,t}[k]e^{\eta v_{i}(x_t)[k]}}}{30pt} \quad \forall j$ \;
+        }
+        \end{algorithm}\caption*{}
+  \end{minipage}
+\end{figure}
+
+Since the probability simplex $\Delta(\mathcal{A}_i)$ is convex and $u_i$ is linear we can apply the these algorithms to \textit{repeated games} and hope that the sequence of play will converge to some notion of equilibrium. In the next section equilibria concepts are discussed in more detail.
+
+
+\section{Equilibria Concepts}\label{section:equilibriaConcepts}
+
+
+\subsection{Pure and Mixed Nash Equilibria}\label{subsection:PNEandMNE}
+The most widely used solution concept in game theory is that of a \textit{Nash equilibrium}. It is a state, where no player can increase their own expected \textit{payoff} by changing their \textit{strategy} while the other \textit{players} keep their \textit{strategy} unchanged. In other words, \textit{Nash equilibria} are those \textit{strategy profiles} that give no \textit{player} the incentive to unilaterally deviate. We can distinguish between \textit{mixed} and \textit{pure Nash equilibria}. Formally, a \textit{mixed strategy profile} $x^* \in \mathcal{X}$ is a \textit{mixed Nash equilibrium} (MNE) if
+
+\begin{equation}\label{equ:MNE}
+    u_i(x_{i}^{*},x_{-i}^{*}) \le  u_i(x_{i},x_{-i}^{*}) \qquad \forall \quad x_i \in \mathcal{X}_i, i \in \mathcal{N}
+\end{equation}
+
+A special case of MNE is when all \textit{players} choose \textit{pure strategies}. A \textit{pure strategy} simply means that all \textit{player} $i \in \mathcal{N}$ select one \textit{action} $a_i \in \mathcal{A}_i$ with probability 1 and the other \textit{actions} $a_j \in \mathcal{A}_i \setminus \{a_i\}$ with probability 0. We can define an \textit{action profile} $a^* \in \mathcal{A}$ as a \textit{pure Nash equilibrium} (PNE) if the following holds.
+
+\begin{equation}\label{equ:PNE}
+    u_i(a_{i}^{*},a_{-i}^{*}) \le u_i(a_{i},a_{-i}^{*}) \qquad \forall \quad a_i \in \mathcal{A}_i, i \in \mathcal{N}
+\end{equation}
+
+Cleary, all \textit{pure Nash equilibria} are also \textit{mixed Nash equilibria}. All $x_{i}^{*}$ are simply unit vectors then. When we think of PNE and MNE as sets then we have 
+
+\begin{equation*}
+    PNE \subset MNE
+\end{equation*}
+
+We can further distinguish between \textit{strict} and \textit{weak Nash equilibria}. A \textit{Nash equilibrium} $x^*$ is called \textit{strict} when equation \ref{equ:MNE} holds with strict inequality for all $x_i \neq x_{i}^{*}$. In other words, $x^*$ is \textit{strict} if no player can deviate unilaterally from $x^*$ without \textit{reducing} their payoff or, equivalently, when every player has a unique best response to $x^*$. This implies that \textit{strict Nash equilibria} are \textit{pure strategy} profiles $x^* = (a_{1}^{*},\dots,a_{N}^{*})$ such that
+
+\begin{equation}\label{equ:strictNE}
+    u_i(a_{i}^{*},a_{-i}^{*}) < u_i(a_{i},a_{-i}^{*}) \qquad \forall \quad a_i \in \mathcal{A}_i \setminus \{a_{i}^{*}\} , i \in \mathcal{N}
+\end{equation}
+
+If a NE is not \textit{strict} we will call it \textit{weak}. Whether or not a NE is \textit{strict} plays an important role when it comes to the convergence behaviour of \textit{no-regret} algorithms. But more on that later in section \ref{section:convergence}. \\
+
+John Nash famously proved in 1950 that in any finite game there exists at least one \textit{mixed Nash equilibrium} \cite{nash}. This theorem became known as \textit{Nash's Theorem}. For instance, the MNE in Rock Paper Scissors from section \ref{section:anExample} would be that each player chooses all actions equally likely, i.e $x_{i}^{*} = (1/3,1/3,1/3) \quad \forall i \in \mathcal{N}$. Note that there is no PNE in this example. \\
+
+Another important result is that there exists no polynomial-time algorithm for computing \textit{Nash equilibria}. In fact,  finding a \textit{Nash equilibrium} in finite games is \textit{PPAD}-complete. That was first shown by by Daskalakis, Goldberg and Papadimitriou  with at least 3 players \cite{daskalakis} and later extended by Chen and Deng to 2 players \cite{chen}. This rises the question whether there exist other solution concepts that are computationally tractable. The answer is yes. Apart from \textit{Nash equilibria} there so called \textit{correlated equilibria} (CE) and {coarse correlated equilibria} (CCE). Lets look at them in more detail.
+
+\subsection{Correlated and Coarse Correlated Equilibria}\label{subsection:CEandCCE}
+
+Consider the example I got from the lecture Algorithmic Game Theory, University of Pennsylvania (dont know how to cite this). 
+
+\begin{table}[H]\centering
+\setlength{\extrarowheight}{2pt}
+\begin{tabular}{cc|c|c|}
+  & \multicolumn{1}{c}{} & \multicolumn{1}{c}{$Stop$}  & \multicolumn{1}{c}{$Go$} \\\cline{3-4}
+  & $Stop$ & $0,0$ & $0,1$ \\\cline{3-4}
+  & $Go$ & $1,0$ & $-100,-100$ \\\cline{3-4}
+\end{tabular}\caption{\label{tab:payoffIntersectionfromFiniteGames}payoff matrix Intersection Game}
+\end{table}
+
+Imagine an intersection where the players are drivers that can either \textit{Stop} or \textit{Go}. In short, $\mathcal{A}_i = \{S,G\}$ for both players. The player's goal is to \textit{Go} without a crash. When both play \textit{Go} they crash and when both play \textit{Stop} no one gains any utility. The \textit{payoff} is set accordingly as in table \ref{tab:payoffIntersectionfromFiniteGames}. \\
+
+There are two \textit{pure Nash equilibria}, $(S,G)$ and $(G,S)$. Note that at least one player has payoff $0$ in that case. There is also a \textit{mixed Nash equilibrium}. Suppose the row player selects the \textit{strategy} $x_1 = (p,1-p)$. Then the column player must be indifferent between both actions, i.e 
+
+\begin{equation*}
+    0 = p - 100(1-p) \iff 101p = 100 \iff p = 100/101
+\end{equation*}
+
+So both players choosing \textit{Stop} with probability $p = 100/101$ and \textit{Go} with probability $1-p = 1/101$  leads to a MNE. In terms of utility, this is even worse as the expected payoff for both players is $0$. Under the MNE the four possible action
+profiles have roughly the following probabilities. 
+
+\begin{table}[H]\centering
+\setlength{\extrarowheight}{2pt}
+\begin{tabular}{cc|c|c|}
+  & \multicolumn{1}{c}{} & \multicolumn{1}{c}{$Stop$}  & \multicolumn{1}{c}{$Go$} \\\cline{3-4}
+  & $Stop$ & $98\%$ & $<1\%$ \\\cline{3-4}
+  & $Go$ & $<1\%$ & $\approx 0.01\%$ \\\cline{3-4}
+\end{tabular}\caption{\label{tab:probabilityUnderMNE}action profile probability distribution under MNE}
+\end{table}
+
+A much better outcome would the following distribution
+
+\begin{table}[H]\centering
+\setlength{\extrarowheight}{2pt}
+\begin{tabular}{cc|c|c|}
+  & \multicolumn{1}{c}{} & \multicolumn{1}{c}{$Stop$}  & \multicolumn{1}{c}{$Go$} \\\cline{3-4}
+  & $Stop$ & $0\%$ & $50\%$ \\\cline{3-4}
+  & $Go$ & $50\%$ & $0\%$ \\\cline{3-4}
+\end{tabular}\caption{\label{tab:probabilityUnderCE}action profile probability distribution under CE}
+\end{table}
+
+Both player have expected utility $1/2$ and don't have to risk a crash. The problem is that there is no MNE that yields this probability distribution. The reason is that \textit{Nash equilibria} are defined as profiles of mixed strategies, that require players to randomize independently, without any
+communication. The above distribution, however, requires both to correlate their actions. On real streets that correlation device is a traffic light. It suggests both driver whether to \textit{Stop} or \textit{Go}. Following its advice is a best response for everyone. \\
+
+That concept can be formalized. A \textit{correlated equilibrium} (CE) is a distribution $\mathcal{D}$ over action profiles $\mathcal{A}$ such that for all \textit{player} $i$ and \textit{action} $a_{i}^{*}$
+
+\begin{equation*}
+    \mathbb{E}_{a \sim \mathcal{D}}[u_i(a)] \ge \mathbb{E}_{a \sim \mathcal{D}}[u_i(a_{i}^{*},a_{-i})|a_i]
+\end{equation*}
+
+In words, a CE is a probability distribution over \textit{action profiles} such that after a profile $a$ is drawn from this distribution, playing $a_i$ is a best response for player $i$ conditioned on seeing $a_i$, given that all the other players play according to $a$. In the intersection game, for instance, conditioned on seeing \textit{Stop}, playing \textit{Stop} is indeed a best response given that the other player sees \textit{Go}. Likewise, conditioned on seeing \textit{Go}, playing \textit{Go} is indeed a best response given that the other player sees \textit{Stop}. \\
+
+\textit{Nash equilibira} are also \textit{correlated equilibria}. It's just that the player's actions are drawn from an independent distribution, so being conditioned on $a_i$ provides no additional information to $a_{-i}$. Therefore the set of CE strictly contains the set of MNE. An even larger solution concept is the set of \textit{coarse correlated equilibria} (CCE). A CCE is a distribution $\mathcal{D}$ over \textit{action profiles} $\mathcal{A}$ such that for all player $i$ and \textit{action} $a_{i}^{*}$
+
+\begin{equation*}
+    \mathbb{E}_{a \sim \mathcal{D}}[u_i(a)] \ge \mathbb{E}_{a \sim \mathcal{D}}[u_i(a_{i}^{*},a_{-i})]
+\end{equation*}
+
+The difference to CE is that CCE only requires that following a suggested \textit{action} $a_i$ when $a$ is drawn from $\mathcal{D}$ is only a best response \textit{before} $a_i$ is seen. An example in (cite lecture8) shows that the set of CCE is strictly larger than CE. That yields the following equilibria hierarchy
+
+\begin{equation*}
+    PNE \subset MNE \subset CE \subset CCE
+\end{equation*}
+
+In contrast to CE, CCE may contain strictly dominated \textit{pure strategy profiles} with positive probability, so they fail the most basic assumption that players are rational. \cite{viossat}. This means that CCE is a rather weak solution concept. Even though hard to compute, \textit{Nash equilibria} is still the most robust and stable solution concept. To what extent \textit{no-regret dynamics} converge to equilibria will be subject to the next section. 
+
+
+\section{Convergence of No-Regret Algorithms in Finite Games}\label{section:convergence}
+
+    
+\textit{No-regret} algorithms are recipes by which players update probabilities that they assign to actions. So if all players employ \textit{no-regret} update policy they could potentially learn \textit{mixed Nash equilibria}. In general that is not the case unfortunately. It was shown that \textit{no-regret dynamics} only converge to the game's set of \textit{coarse correlated equilibria} \cite{flokas}, a rather weak game theoretic solution concept. \textit{No-regret} learning may cycle and weight only strictly dominated strategies \cite{mertikopoulos}. The \textit{impossibility result} by Hart and Mas-Colell states that there exists no uncoupled dynamics which guarantee Nash convergence \cite{hart}. \textit{No-regret} dynamics are, by construction, uncoupled in the sense that a player’s update rule does not explicitly depend on the payoffs of other players. Therefore the \textit{impossibility result} precludes Nash convergence of \textit{no-regret} learning. This is consistent with the numerous negative complexity results for finding a \textit{Nash equilibrium} \cite{chen, daskalakis}. \\
+
+Despite these negative results, empirical experiments show that \textit{no-regret algorithms} still converge to \textit{Nash equilibria} in some games. This chapter aims to provide sufficent conditions under which \textit{no-regret} learning converges to NE. In chapter \ref{chapter:simulations} I try to give empirical evidence and visualize the results. \\
+
+Greenwald, Jafari and Ercal found out that \textit{no-regret} algorithms converge to  NE in dominance-sovalbe games such as the Prisoner's Dilemma, a game where a unique dominant strategy PNE exists \cite{jafari}. They additionally show that in zero sum games, like Rock Paper Scissors or Matching Pennies, the empirical frequency of play in \textit{no regret} dynamics converges to a MNE. In general-sum 3x3 games, like the Shapley game however, the algorithms exhibit non convergent exponential cycling behavior \cite{jafari}. \\
+
+More recent findings showed that in fact, only \textit{strict Nash equilibria} survive under FoReL dynamics. \cite{flokas}. It turned out that \textit{strict} NE are so called \textit{stable} states. Lets introduce the notion of \textit{stable} states. We say a state $x^* \in \mathcal{X}$ is \textit{variational stable} (or simply \textit{stable}) if there exists a neighborhood $U$ of $x^*$ such that \cite[Def. 2.3]{mertikopoulos}
+
+\begin{equation}
+    \langle v(x),x-x^*\rangle \le 0 \qquad \forall \quad x \in U
+\end{equation}
+
+with equality if and only if $x = x^*$. In particular, if $U$ can be taken to be all of $\mathcal{X}$, we say that $x^*$ is \textit{globally variationally stable} (or \textit{globally stable} for short). In other words, if $x^*$ is a NE, the players’ individual payoff gradients $v(x)$ “point towards” $x^*$ in the sense that the angle between $x^* - x$ and $v(x)$ is acute. \\
+
+It was shown that no interior point, and therefore no \textit{fully mixed Nash equilibrium}, can be asymptotically stable under FoReL dynamics \cite[Theorem 1]{flokas}. Furthermore if a \textit{Nash equilibrium} is not \textit{strict} then it cannot be \textit{stable} under FoReL. In fact, a \textit{stable} point is equivalent to a \textit{strict Nash equilibrium} \cite[Prop. 5.2]{mertikopoulos}
+
+\begin{equation}\centering
+    x^* \text{ is } \textit{stable} \iff x^* \text{ is } \textit{strict NE}
+\end{equation}
+
+In particular if $x^*$ is \textit{globally stable} then $x^*$ is a unique \textit{Nash equilibrium}
+
+\begin{equation}\centering
+    x^* \text{ is } \textit{globally stable} \iff x^* \text{ is unique NE}
+\end{equation}
+
+When \textit{no-regret} dynamics are employed then the induced sequence of play converges globally to \textit{globally stable} equilibrium with probability $1$ \cite[Theorem 4.7]{mertikopoulos} and \textit{stable}  but not \textit{globally stable} equilibria are locally attracting with arbitrary high probability \cite[Theorem 4.11]{mertikopoulos}. \\
+
+In the next chapter I would like to give empirical evidence for all the findings discussed in this section. I will run two \textit{no regret} algorithms, OGALP and NEG, on simple two player games and visualize their convergence behavior. 
+
+
