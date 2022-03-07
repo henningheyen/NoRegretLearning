@@ -1,12 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-
-colors = ['#0065BD', '#A2AD00', 'b']
+colors = ['#0065BD', '#A2AD00', 'b', '#E37222']
 
 
 def updateStrategy(iterations, gridSize, payoff1, payoff2, algorithm):
-    """ makes one Gradient Ascent with Lazy Projections (euclidean) or Online Mirror Ascent (with entropic regularizer)
+    """ makes one Gradient Ascent with Euclidean Projections or Online Mirror Ascent (with entropic regularizer)
         #update step for every single point in the grid
         Mirror Descent in this case uses entropic regularization: R(x) = sum_i=1^d(x[i] * log(x[i]))
         which is 1 strongly convex over the probability simplex (Shalev-Shwartz, p.136))
@@ -17,8 +16,8 @@ def updateStrategy(iterations, gridSize, payoff1, payoff2, algorithm):
             :param gridSize: (np.array)): numpy payoff matrix of row Player (Player1). Use utility maximization
             :param iterations: (np.array): numpy payoff matrix of column Player (Player2)
             :param algorithm: (string): choose from:
-                -"ProjOGA": Online Gradient Ascent with Lazy Projections, see Shalev-Swartz p.144
-                -"NormalizedEG": Normalized Exponentiated Gradient <=> Online Mirror Ascent with entropic regularizer, , see Shalev-Swartz p.144
+                -"POGA": projected online gradient ascent, see Shalev-Swartz p.144
+                -"EGA": entropic gradient ascent <=> Online Mirror Ascent with entropic regularizer, see Shalev-Swartz p.144
 
         Returns:
             (np.matrix): diff1 describes how much the probability for Player 1
@@ -28,15 +27,18 @@ def updateStrategy(iterations, gridSize, payoff1, payoff2, algorithm):
     """
 
     # check if algorithm is allowed
-    if algorithm != "ProjOGA" and algorithm != "NormalizedEG":
-        print("Please only use 'ProjOGA' and 'NormalizedEG' as algorithm")
+    if algorithm != "POGA" and algorithm != "EGA":
+        print("Please only use 'POGA' and 'EGA' as algorithm")
         return
 
     # store difference in strategies after one update step for player 1, player 2
     eta = calculateStepSize(iterations)
 
-    # P1(Strategy[0]), P2(Strategy[0])
-    p1 = p2 = np.linspace(0.001, 0.999, gridSize)
+    # P1(Strategy[0]), P2(Strategy[0]) // note that EGA is not defined on simplex edges
+    if algorithm == "POGA":
+        p1 = p2 = np.linspace(0, 1, gridSize)
+    else:
+        p1 = p2 = np.linspace(0.001, 0.999, gridSize)
     diff1 = np.zeros((gridSize, gridSize))
     diff2 = np.zeros((gridSize, gridSize))
 
@@ -78,8 +80,8 @@ def updateStep(payoff1, payoff2, strategy1, strategy2, eta, algorithm):
             :param strategy2: Player 2 accordingly
             :param eta: stepSize
             :param algorithm: (string): choose from:
-                -"ProjOGA": Online Gradient Ascent with Lazy Projections, see Shalev-Swartz p.144
-                -"NormalizedEG": Normalized Exponentiated Gradient, , see Shalev-Swartz p.144
+                -"POGA": projected online gradient ascent, see Shalev-Swartz p.144
+                -"EGA": entropic gradient ascent, see Shalev-Swartz p.144
 
         Returns:
             (np.array): strategy profile of player 1 after one step
@@ -90,14 +92,16 @@ def updateStep(payoff1, payoff2, strategy1, strategy2, eta, algorithm):
     grad1 = payoff1.dot(strategy2)
     grad2 = strategy1.transpose().dot(payoff2)
 
-    # Note this is Online Gradient Ascent with Lazy Projections
-    if algorithm == "ProjOGA":
+    # Note this is projected online gradient ascent
+    if algorithm == "POGA":
         strategy1_after = strategy1 + eta * grad1
-        strategy1_after = project(strategy1_after)
+        if not isFeasible(strategy1_after):
+            strategy1_after = project(strategy1_after)
         strategy2_after = strategy2 + eta * grad2
-        strategy2_after = project(strategy2_after)
+        if not isFeasible(strategy2_after):
+            strategy2_after = project(strategy2_after)
     else:
-        # update strategy (Online Mirror Ascent with entropic regularizer <=> Normalized Exponentiated Gradient)
+        # update strategy (Online Mirror Ascent with entropic regularizer <=> entropic gradient ascent)
         strategy2_after = strategy2 * np.exp(eta * grad2) / sum(strategy2 * np.exp(eta * grad2))
         strategy1_after = strategy1 * np.exp(eta * grad1) / sum(strategy1 * np.exp(eta * grad1))
 
@@ -121,8 +125,8 @@ def plot(gridSize, diff1, diff2, pne, mne, gameName, nameOfStrategy1, nameOfStra
             :param nameOfStrategy1: (string): The name that the first Strategy of player 1 displayed on x axis.
             :param nameOfStrategy2: (string): The name that the first Strategy of player 2 displayed on y axis.
             :param algorithm: (string): choose from:
-                -"ProjOGA": Online Gradient Ascent with Lazy Projections, see Shalev-Swartz p.144
-                -"NormalizedEG": Normalized Exponentiated Gradient, , see Shalev-Swartz p.144
+                -"POGA": projected online gradient ascent, see Shalev-Swartz p.144
+                -"EGA": entropic gradient ascent, see Shalev-Swartz p.144
             :param plotType:(string): choose from:
                     -"quiver": creates a vector field
                     -"stream",: creates a streamPlot
@@ -163,8 +167,8 @@ def trajectory(p1Init, p2Init, iterations, payoff1, payoff2, algorithm):
             :param payoff1: (np.array): payoff matrix for player 1 (utility maximization)
             :param payoff2: (np.array): payoff matrix for player 2 (utility maximization)
             :param algorithm: (string): choose from:
-                -"ProjOGA": Online Gradient Ascent with Lazy Projections, see Shalev-Swartz p.144
-                -"NormalizedEG": Normalized Exponentiated Gradient, , see Shalev-Swartz p.144
+                -"POGA": projected online gradient ascent, see Shalev-Swartz p.144
+                -"EGA": entropic gradient ascent, see Shalev-Swartz p.144
 
         Returns:
             (list of floats): list of probabilities for player 1 to play strategy 1 according to timeStep t
@@ -195,6 +199,7 @@ def plotTrajectory(p1Init, p2Init, p1, p2, pne, mne,
     """ plots the trajectory of a the algorithm for one specific initial strategy
 
     Args:
+
         :param p1Init: (float): initial probability that player 1 plays strategy 1. Will be plotted as point.
         :param p2Init: (float): initial probability that player 2 plays strategy 1
         :param p1: (list of floats): list of probabilities for player 1 to play strategy 1 according to timeStep t
@@ -204,9 +209,10 @@ def plotTrajectory(p1Init, p2Init, p1, p2, pne, mne,
             Syntax (..., (P1(strategy1),P2(strategy1)), ... ), e.g [[3/5,2/5]]
         :param gameName: (string): The name of the game that will be displayed as title
         :param nameOfStrategy1: (string): The name that the first Strategy of player 1 displayed on x axis.
-        :param nameOfStrategy2: (string): The name that the first Strategy of player 2 displayed on y axis.        :param algorithm: (string): choose from:
-                -"ProjOGA": Online Gradient Ascent with Lazy Projections, see Shalev-Swartz p.144
-                -"NormalizedEG": Normalized Exponentiated Gradient, , see Shalev-Swartz p.144
+        :param nameOfStrategy2: (string): The name that the first Strategy of player 2 displayed on y axis.
+        :param algorithm: (string): choose from:
+                -"POGA": projected online gradient ascent, see Shalev-Swartz p.144
+                -"EGA": entropic gradient ascent, see Shalev-Swartz p.144
         :param payoff1: (np.array): optional argument, only needed when stable points should be plotted
         :param payoff2: (np.array): same as payoff1
         :param stableTo: (list of lists): an optional argument. When not empty the region of stable point
@@ -215,9 +221,9 @@ def plotTrajectory(p1Init, p2Init, p1, p2, pne, mne,
     if stableTo is None:
         stableTo = []
     plt.figure(figsize=(6, 6), dpi=100)
-    plt.scatter(p1Init, p2Init, color='#0065BD', marker='o', s=70, zorder=1, label='initial strategy')
+    plt.scatter(p1Init, p2Init, color='#E37222', marker='o', s=70, zorder=5, label='initial strategy')
     plotEquilibria(pne, mne)
-    plt.plot(p1, p2, marker='*')
+    plt.plot(p1, p2, marker='.', color='black')
     labelPlot(gameName, nameOfStrategy1, nameOfStrategy2, algorithm)
     legend(pne, mne)
     adjustPlot()
@@ -240,6 +246,8 @@ def computeStablePoints(payoff1, payoff2, ne):
     :return: stable2: (list): he y coordinates of points that are stable
 
     """
+    # for zoomed in version
+    # granularity = 1000
     granularity = 150
     p1 = p2 = np.linspace(0, 1, granularity)
 
@@ -319,8 +327,8 @@ def calculateFrequencies(p1Init, p2Init, iterations, payoff1, payoff2, algorithm
     :param payoff1: payoff matrix player 1
     :param payoff2: payoff matrix player 2
     :param algorithm: (string): choose from:
-                -"ProjOGA": Online Gradient Ascent with Lazy Projections, see Shalev-Swartz p.144
-                -"NormalizedEG": Normalized Exponentiated Gradient, , see Shalev-Swartz p.144
+                -"POGA": projected online gradient ascent, see Shalev-Swartz p.144
+                -"EGA": entropic gradient ascent, see Shalev-Swartz p.144
 
     :return: frequencyStrategy1Action1 (list): frequency of player 1 actually having played action 1 by following
                                                 the algorithms update step
@@ -332,8 +340,8 @@ def calculateFrequencies(p1Init, p2Init, iterations, payoff1, payoff2, algorithm
 
     eta = calculateStepSize(iterations)
 
-    strategy1 = np.array([p1Init, 1-p1Init])
-    strategy2 = np.array([p2Init, 1-p2Init])
+    strategy1 = np.array([p1Init, 1 - p1Init])
+    strategy2 = np.array([p2Init, 1 - p2Init])
 
     for t in range(iterations):
 
@@ -342,8 +350,8 @@ def calculateFrequencies(p1Init, p2Init, iterations, payoff1, payoff2, algorithm
         if strategy2[0] > 0.5:
             numStrategy2Action1Played += 1
 
-        frequencyStrategy1Action1 += [numStrategy1Action1Played/(t+1)]
-        frequencyStrategy2Action1 += [numStrategy2Action1Played/(t+1)]
+        frequencyStrategy1Action1 += [numStrategy1Action1Played / (t + 1)]
+        frequencyStrategy2Action1 += [numStrategy2Action1Played / (t + 1)]
 
         strategy1, strategy2 = updateStep(payoff1, payoff2, strategy1, strategy2, eta, algorithm)
 
@@ -360,8 +368,8 @@ def plotFrequencies(iterations, frequencyStrategy1Action1, frequencyStrategy2Act
     :param nameOfStrategy2Action1: name of Player 2's first action
     :param gameName: name of the Game
     :param algorithm: (string): choose from:
-                -"ProjOGA": Online Gradient Ascent with Lazy Projections, see Shalev-Swartz p.144
-                -"NormalizedEG": Normalized Exponentiated Gradient, , see Shalev-Swartz p.144
+                -"POGA": projected online gradient ascent, see Shalev-Swartz p.144
+                -"EGA": entropic gradient ascent, see Shalev-Swartz p.144
     """
 
     plt.figure(figsize=(6, 6), dpi=100)
@@ -374,8 +382,8 @@ def plotFrequencies(iterations, frequencyStrategy1Action1, frequencyStrategy2Act
     plt.plot(x, frequencyStrategy2Action1, label='Player 2: ' + nameOfStrategy2Action1, c='#A2AD00', ls='-')
 
     plt.ylim(-0.05, 1.05)
-    plt.xlabel('time')
-    plt.ylabel('frequency')
+    plt.xlabel('time $t$', fontsize=10)
+    plt.ylabel('frequency', fontsize=10)
     plt.legend()
     plt.show()
 
@@ -401,8 +409,10 @@ def calculateStepSize(iterations):
     # Lipschitz Constant
     lip = 1
     # step size
-    eta = np.sqrt(np.log(d)) / (lip * np.sqrt(2 * iterations))
-    # eta = 0.4
+    # eta = np.sqrt(np.log(d)) / (lip * np.sqrt(2 * iterations))
+
+    # eta = 0.3
+    eta = 0.1
     return eta
 
 
@@ -438,7 +448,7 @@ def plotEquilibria(pne, mne):
         if k > 0:
             plt.scatter(i, j, color='#000000', marker='o', s=100, zorder=3)
         else:
-            plt.scatter(i, j, color='#000000', marker='o', s=100, label='Pure NE', zorder=3)
+            plt.scatter(i, j, color='#000000', marker='o', s=100, label='PNE', zorder=3)
     # MNE
     for k in range(len(mne)):
         i = mne[k][0]
@@ -447,7 +457,7 @@ def plotEquilibria(pne, mne):
         if k > 0:
             plt.scatter(i, j, color='#000000', marker='*', s=150, zorder=3)
         else:
-            plt.scatter(i, j, color='#000000', marker='*', s=150, label='Mixed NE', zorder=3)
+            plt.scatter(i, j, color='#000000', marker='*', s=150, label='MNE', zorder=3)
 
 
 def labelPlot(gameName, nameOfStrategy1, nameOfStrategy2, algorithm):
@@ -458,11 +468,14 @@ def labelPlot(gameName, nameOfStrategy1, nameOfStrategy2, algorithm):
         :param nameOfStrategy1: (string): The name that the first Strategy of player 1 displayed on x axis.
         :param nameOfStrategy2: (string): The name that the first Strategy of player 2 displayed on y axis.
         :param algorithm: (string): choose from:
-                -"ProjOGA": Online Gradient Ascent with Lazy Projections, see Shalev-Swartz p.144
-                -"NormalizedEG": Normalized Exponentiated Gradient, , see Shalev-Swartz p.144
+                -"POGA": projected online gradient ascent, see Shalev-Swartz p.144
+                -"EGA": entropic gradient ascent, see Shalev-Swartz p.144
     """
-    plt.xlabel('P(' + nameOfStrategy1 + ') Player 1', fontsize=15)
-    plt.ylabel('P(' + nameOfStrategy2 + ') Player 2', fontsize=15)
+
+    # plt.xlabel('P(' + nameOfStrategy1 + ') Player 1', fontsize=15)
+    # plt.ylabel('P(' + nameOfStrategy2 + ') Player 2', fontsize=15)
+    plt.xlabel('$x_{1,' + nameOfStrategy1 + '}$', fontsize=15)
+    plt.ylabel('$x_{2,' + nameOfStrategy2 + '}$', fontsize=15)
     labelTitle(gameName, algorithm)
 
 
@@ -470,10 +483,10 @@ def labelTitle(gameName, algorithm):
     """ Gives plot a title depending on the algorithm and the gamename provided in initialization
 
     """
-    if algorithm == "ProjOGA":
-        algorithmName = "Projected Online Gradient Ascent"
-    elif algorithm == "NormalizedEG":
-        algorithmName = "Normalized Exponentiated Gradient"
+    if algorithm == "POGA":
+        algorithmName = "projected online gradient ascent"
+    elif algorithm == "EGA":
+        algorithmName = "entropic gradient ascent"
     else:
         algorithmName = ""
     title = gameName + ' \n ' + '(' + algorithmName + ')'
@@ -486,8 +499,10 @@ def legend(pne, mne):
     :param pne: Pure Nash Equilibria
     :param mne: Mixed Nash Equilibria
     """
-    if (len(pne) + len(mne)) > 0:
-        plt.legend(fontsize=12, loc='best', bbox_to_anchor=(1, 1))
+
+    # comment in if you want a legend
+    # if (len(pne) + len(mne)) > 0:
+    #    plt.legend(fontsize=12, loc='best', bbox_to_anchor=(1, 1))
 
 
 def adjustPlot():
@@ -498,9 +513,17 @@ def adjustPlot():
     plt.ylim(-0.05, 1.05)
     plt.xlim(-0.05, 1.05)
 
-    # use to zoom in
+    # use to zoom in at [0,0]
     # plt.ylim(-0.01, .01)
     # plt.xlim(-0.01, .01)
+
+    # use to zoom in at [2/5,3/5]
+    # plt.ylim(2/5-0.1, 2/5+.1)
+    # plt.xlim(3/5-0.1, 3/5+.1)
+
+    # use to zoom in at [100/101,100/101]
+    # plt.ylim(0.95, 1.0)
+    # plt.xlim(0.95, 1.0)
 
 
 def project(v):
@@ -523,3 +546,8 @@ def project(v):
     theta = cssv[cond][-1] / float(rho)
     w = np.maximum(v - theta, 0)
     return w
+
+
+def isFeasible(strategy):
+    return sum(strategy) == 1 and min(strategy) >= 0 and max(strategy) <= 1
+
