@@ -1,0 +1,83 @@
+
+\chapter{Introduction}\label{chapter:introduction}
+
+For decades scientists are interested in the game-theoretic solution concept of Nash equilibria. Even though we know there exists one Nash equilibrium in all finite games that allow mixed strategies, it is computationally intractable to find one in general. This problem has been a topic of intense research in game theory and its applications in economics, optimization, and more recently, machine learning. Since there is not much hope for an algorithm that can compute Nash equilibria efficiently we can instead ask the question: Are Nash equilibria learnable by no-regret dynamics? In contrast to deterministic best response dynamics like fictitious play, no-regret dynamics can potentially learn pure and mixed Nash equilibria as they are algorithms by which players assign probabilities to strategies. The fundamental question is if all players employ a no-regret update policy in a repeated game, do their strategies converge to a Nash equilibrium. Unfortunately, the general answer is no. Even in simple two-player games, we find cycling behavior and strictly dominated strategies assigned with positive probability, which is highly irrational to play. The underlying reason is that no-regret dynamics are known to converge to the game's set of coarse correlated equilibria, a much weaker solution concept. However, the set of Nash equilibria is properly included in the set of coarse correlated equilibria, and for some games, we do observe Nash convergence under no-regret learning. The bottom line is that only strict Nash equilibria survive, and the empirical frequency of play converges to Nash in two-player zero-sum games that yield an interior equilibrium. For a better intuition, this thesis visualizes the behavior of two concrete no-regret algorithms in simple two-player games. \\ 
+
+Chapter \ref{chapter:noRegretLearning} will introduce the basic concepts of online convex optimization and regret minimization. Later in the chapter, we will derive the family of online mirror descent algorithms. Then, in chapter \ref{chapter:finiteGames}, finite games and their mixed extensions will be formally defined. Also, we study the hierarchy of game-theoretic solution concepts, including Nash and correlated equilibria. After that, in chapter \ref{chapter:literatureReview}, we will review the literature considering the convergence behavior of no-regret dynamics in finite games. Finally, in chapter \ref{chapter:simulations}, we will run two no-regret algorithms, namely projected online gradient ascent and entropic gradient ascent, on simple two-player games and empirically verify the results from the literature. In the end, we introduce three games that yield non-strict (or weak) pure Nash equilibria. Interestingly, I found convergent behavior but not to Nash equilibria.
+
+
+\begin{comment}
+
+\begin{itemize}
+    \item The classical problem of finding a Nash equilibrium in multi-agent systems has been a topic of
+    prolific research in several areas, including Mathematics, Economics, Algorithmic Game Theory,
+    Optimization and more recently Machine Learning in
+    the context of Generative Adversarial Networks and multi-agent reinforcement learning 
+    \item Is Nash learnable via no regret
+    \item no regret converges to CCE
+    \item there exist coarse correlated equilibria that
+    are supported only on strictly dominated strategies. Therefore, since playing a coarse
+    correlated equilibrium leads to no regret
+    \item A learning algorithm is said to exhibit no regret iff average payoffs that are achieved by the algorithm exceed tha payoffs that could be achieved by any fixed strategy. in the limit
+    \item in contrast to best response dynamics like fictitious play, regret dynamics are recipes by which to update probabilities that agents assaign to actions could potentially learn MNEs.
+    \item if all players of a repeated game employ a no-regret updating policy, do their actions converge to a Nash equilibrium of the underlying game? In general, the answer to this question is a resounding “no”. Even in simple, finite games, no-regret learning may cycle [27] and its limit set may contain highly non- rationalizable strategies that assign positive weight only to strictly dominated strategies
+    \item under FoReL only \textit{strict Nash equilibria} survive. 
+    \item Structure of this thesis
+    \item we focus on learning via “Online Mirror Descent”, a widely used class of no-regret learning schemes where players take small steps along their individual payoff gradients and then “mirror” the output back to their action sets
+\end{itemize}
+
+
+
+\begin{itemize}
+    \item So far, there is no comprehensive characterization of games that are “learn- able,” but there are some important results. For example, it is well-known that no-regret dynamics converge to a coarse correlated equilibrium in arbitrary fi- nite games [17,26,15,12]. Coarse correlated equilibria (CCE) encompass the set of correlated equilibria (CE) of a finite game. The latter is a nonempty convex polytope which in turn contains the convex hull of the game’s Nash equilibria such that we get NE subset CE subset CCE. (ComputingBNE, p.3)
+    \item investigate the question whether NE is learnable via nor regret dynamics \cite{jafari} Introduction
+    \item What is the outcome of multi agent learning via no regret algorithms in repeated games? A learning algorithm is said to exhibit no regret iff average payoffs that are achieved by the algorithm exceed tha payoffs that could be achieved by any fixed strategy. in the limit. \cite{jafari} Introduction
+    \item best response dynamics like fictitious play does not converge to NE in general  because rational play yields deterministic play. Therefore rational play can not possibly converge to NE in games where no PNE exist. In contrast no regret dynamics are recipes by which to update probabilities that agents assaign to actions could potentially learn MNEs. 
+    \item under FoReL only \textit{strict Nash equilibria} survive. 
+    
+    \item maybe divide in Problem and Contribution
+    
+    \item There is an unfortunate disconnect between game
+    theory and optimization in terms of how objectives are formulated. In optimization,
+    the objective is to minimize the incurred cost; in game theory, to maximize one’s rewards. In turn, this creates a clash of terminology when referring to methods such as
+    “gradient descent” or “mirror descent” in a maximization setting. To avoid going against
+    the traditions of each field, we keep the usual conventions in place (minimization in
+    optimization, maximization in game theory), and we rely on the reader to make the
+    mental substitution of “descent” to “ascent” when needed (merthabili p.4)
+    
+    \item we focus on learning via “dual averaging”, a widely used class of no-regret learning schemes where players take small steps along their individual payoff gradients and then “mirror” the output back to their action sets \cite[abstract]{mertikopoulos}
+    
+    \item The classical problem of finding a Nash equilibrium in multi-agent systems has been a topic of
+    prolific research in several areas, including Mathematics, Economics, Algorithmic Game Theory,
+    Optimization [Nas50, Sio58, DGP06, NRTV07, Nes05] and more recently Machine Learning in
+    the context of Generative Adversarial Networks [GPAM+14, ACB17] and multi-agent reinforcement learning (Solving Zero-Sum Games through Alternating Projections)
+    
+    \item n this and the following chapter, our aim is to examine the long-run behavior of online
+    learning dynamics in a game-theoretic context. Specifically, we seek to address the
+    following questions:
+    Does no-regret learning lead to rationally admissible states?
+    In particular, does it converge to a Nash equilibrium?
+    As we discussed towards the end of the previous chapter, the counterexample of
+    Viossat and Zapechelnyuk [148] shows that there exist coarse correlated equilibria that
+    are supported only on strictly dominated strategies. Therefore, since playing a coarse
+    correlated equilibrium leads to no regret [35], the answer to both questions above is, in
+    general, a resounding “no”. Especially on the issue of convergence to Nash equilibrium,
+    the impossibility result of Hart and Mas-Colell [62] shatters any hope of obtaining an
+    unconditionally positive answer when the players’ dynamics are uncoupled – i.e., the
+    adjustment of a player’s strategy does not depend explicitly on the payoff functions of the
+    other players. All in all, as pointed out by Cesa-Bianchi and Lugosi [35, p. 205] specifying
+    the precise interplay between no-regret learning and Nash equilibrium is a “considerably
+    more difficult problem” \cite{HDRmertikopoulos} p.33
+    
+    \item In its most basic form, a “game” is a mathematical framework for modeling strategic interactions between optimizing agents with different individual objectives – the players of the game. Of course, there is an extensive taxonomy of game-theoretic models depending on the type of players involved (e.g., atomic vs. non-atomic), the nature of the players’ interactions (whether they are sequential or simultaneous, cooperative or non-cooperative), and/or the way these interactions determine the agents’ rewards. However, there are three principal components that are present throughout this diverse landscape: i) the players of the game; ii) each player’s set of actions; and iii) the players’ payoff functions. Specifying these three elements goes a long way in defining the relevant solution concepts and what may or may not be learnable in this context \cite{HDRmertikopoulos} p. 25
+    
+    \item We are thus led to the following fundamental question: if all players of a repeated game employ a no-regret updating policy, do their actions converge to a Nash equilibrium of the underlying game? In general, the answer to this question is a resounding “no”. Even in simple, finite games, no-regret learning may cycle [27] and its limit set may contain highly non- rationalizable strategies that assign positive weight only to strictly dominated strategies [48]. As such, our aim in this paper is twofold \cite{mertikopoulos} p.466
+\end{itemize}
+\end{comment}
+
+
+
+
+
+
+

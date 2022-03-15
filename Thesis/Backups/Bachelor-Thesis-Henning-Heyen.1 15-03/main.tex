@@ -1,0 +1,61 @@
+\RequirePackage[l2tabu,orthodox]{nag}
+
+% TODO: decide if one-sided/two-sided
+%\documentclass[headsepline,footsepline,footinclude=false,fontsize=11pt,paper=a4,listof=totoc,bibliography=totoc,BCOR=12mm,DIV=12]{scrbook} % two-sided
+\documentclass[headsepline,footsepline,footinclude=false,oneside,fontsize=11pt,paper=a4,listof=totoc,bibliography=totoc]{scrbook} % one-sided
+
+% TODO: change citation style in settings
+\input{settings}
+
+% TODO: change thesis information
+\newcommand*{\getUniversity}{TECHNICAL UNIVERSITY OF MUNICH}
+\newcommand*{\getFaculty}{Department of Informatics}
+\newcommand*{\getTitle}{No-Regret Learning in Finite Games}
+\newcommand*{\getTitleGer}{No-Regret Learning in endlichen Spielen}
+\newcommand*{\getAuthor}{Henning Heyen}
+\newcommand*{\getDoctype}{Bachelor's Thesis in Information Systems}
+\newcommand*{\getSupervisor}{Prof. Dr.  Martin Bichler}
+\newcommand*{\getAdvisor}{Matthias Oberlechner}
+\newcommand*{\getSubmissionDate}{15.03.2022}
+\newcommand*{\getSubmissionLocation}{Munich}
+
+\begin{document}
+
+% Make subsubsections appear in Table of Content
+\setcounter{tocdepth}{4}
+\setcounter{secnumdepth}{4}
+
+
+% Set page numbering to avoid "destination with the same identifier has been already used" warning for cover page.
+% (see https://en.wikibooks.org/wiki/LaTeX/Hyperlinks#Problems_with_Links_and_Pages).
+\pagenumbering{alph}
+\input{pages/cover}
+
+\frontmatter{}
+
+\input{pages/title}
+\input{pages/disclaimer}
+\input{pages/acknowledgments}
+\input{pages/abstract}
+\microtypesetup{protrusion=false}
+\tableofcontents{}
+\microtypesetup{protrusion=true}
+
+\mainmatter{}
+
+\input{chapters/01_introduction}
+\input{chapters/02_no_regret_learning}
+\input{chapters/03_finite_games}
+\input{chapters/04_literature_review}
+\input{chapters/05_simulations}
+\input{chapters/06_conclusion}
+
+\appendix{}
+
+\microtypesetup{protrusion=false}
+%\listoffigures{}
+%\listoftables{}
+\microtypesetup{protrusion=true}
+\printbibliography{}
+
+\end{document}

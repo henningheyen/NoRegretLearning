@@ -1,0 +1,81 @@
+
+\chapter{Literature Review}\label{chapter:literatureReview}
+
+This chapter aims to overview significant results in no-regret dynamics applied to finite games with mixed extensions. First, we will discuss some general game-theoretic findings that motivate the usage of no-regret dynamics in game theory and then summarize results considering the convergence behavior of no-regret algorithms, particularly \textit{follow the regularized leader} (\ref{equ:FTRL}). \\
+
+\section{General Results}\label{section:generalResults}
+
+John Nash famously proved in 1950 that for every finite game with mixed extensions, there exists at least one mixed Nash equilibrium (MNE), i.e. $MNE(\Gamma)$ is not empty \cite{nash}. This theorem became known as \textit{Nash's Theorem}. Another important result is that no polynomial-time algorithm exists for computing Nash equilibria (NE). Finding a Nash equilibrium is \textit{PPAD}-complete. That was first shown by Daskalakis, Goldberg, and Papadimitriou in games with at least three players \cite{daskalakis} and later extended by Chen and Deng to two players \cite{chen}. This raises the question of whether Nash equilibria are learnable at all. \\
+
+No-regret algorithms are recipes by which players update probabilities assigned to actions. So if all players employ a no-regret update policy, they could potentially learn, which means converge to mixed Nash equilibria. Convergence can be formulated in various ways. Let us first consider the players' empirical frequency of play, i.e. time-averaged selected strategies. Later we consider the convergence of the actual sequence trajectories, last-iterates in short.\\
+
+It was shown that under no-regret dynamics, the empirical frequency of play converges to the game's set of coarse correlated equilibria (CCE) \cite{flokas}, a rather weak game-theoretic solution concept. No-regret learning may cycle and weight only strictly dominated strategies \cite{mertikopoulos}. Moreover, the \textit{impossibility result} by Hart and Mas-Colell states that there exist no uncoupled dynamics which guarantee Nash convergence \cite{hart}. No-regret dynamics are, by construction, uncoupled in the sense that a player’s update rule does not explicitly depend on the payoffs of other players. Therefore the \textit{impossibility result} precludes Nash convergence of no-regret learning. That is consistent with the numerous negative complexity results for finding a Nash equilibrium \cite{chen, daskalakis}. \\
+
+
+\section{Sufficient Conditions for Nash Convergence}\label{section:SufficientConditionsForNash Convergence}
+
+Despite these negative results, we empirically observe Nash convergence under no-regret algorithms for some games. In the following, I aim to provide an overview of sufficient conditions under which no-regret learning converges to a NE. In chapter \ref{chapter:simulations} I try to give empirical evidence and visualize the results. \\
+
+Similar to this thesis, in 2001, Jafari, Greenwald, Gondek, and Ercal studied the behavior of a concrete no-regret algorithm, namely Hedge, on simple finite games. They found that the algorithm's induced sequence of play converges to NE in dominance-solvable games such as the Prisoner's Dilemma, a game where a unique dominant strategy pure Nash equilibrium (PNE) exists \cite{jafari}. They additionally suggest that in two-player zero-sum games, the empirical frequency of play converges to fully mixed NE under no-regret dynamics by employing the algorithm the games Rock Paper Scissors and Matching Pennies. However, in the Shapley Games, a general-sum 3x3 game, the Hedge algorithm exhibits non-convergent exponential cycling behavior \cite{jafari} which suggests that in general-sum games, no-regret algorithms fail to converge to NE in general.\\
+
+Later in 2016, Sandholm and Mertikopoulos formally proved these findings \cite[Theorem 4.1 and Theorem 6.1]{sandholm}.
+
+\begin{proposition}\label{prop:dominantedStrategiesExtinct}
+    Under \ref{equ:FTRL} iteratively dominated strategies become extinct
+\end{proposition}
+
+\begin{proposition}\label{prop:empiricalFrequencyConvergence}
+    Under \ref{equ:FTRL} the empirical frequency of play converges to Nash in two-player zero-sum games with interior equilibrium
+\end{proposition}
+
+Considering the actual trajectories that players take, we know that in zero-sum games that admit an interior Nash equilibrium, trajectories are non-convergent for all initial strategy profiles other than the equilibrium \cite{bailey}. More specifically, for 2x2 zero-sum games, even though the time-averaged strategies converge, the actual sequence of strategies are repelled away from the interior equilibrium and will eventually move towards the boundary of the probability simplex \cite[Theorem 1]{bailey}. \\
+
+So far, we have seen that in zero-sum games with interior equilibrium trajectories under \ref{equ:FTRL} diverge. More recent studies have shown that, in fact, only strict Nash equilibria survive under \ref{equ:FTRL} dynamics \cite{flokas}. It turned out that strict NE are so-called \textit{stable} states. Let us introduce the notion of stable states \cite[Def. 2.3]{mertikopoulos}. 
+
+\begin{definition}\label{def:stability}
+    A state $x^* \in \mathcal{X}$ is called \textit{variational stable} (or simply stable) if there exists a neighborhood $U$ of $x^*$ such that 
+    \[\langle v(x),x-x^*\rangle \le 0 \qquad \forall x \in U\]
+\end{definition}
+
+with equality if and only if $x = x^*$. In particular, if $U$ can be taken to be all of $\mathcal{X}$, we say that $x^*$ is \textit{globally variationally stable} (or \textit{globally stable} for short). In other words, if $x^*$ is stable, then for all $x$ in the neighborhood of $x^*$ the players’ individual payoff gradients $v(x)$ “point towards” $x^*$ in the sense that the angle between $x^* - x$ and $v(x)$ is acute. Furthermore we can define \textit{attracting} states \cite[Def. 3.2]{HDRmertikopoulos}. 
+
+\begin{definition}\label{def:attracting}
+    A state $x^*$ is attracting if there is a neighbourhood $U$ of $x^*$ such that under \ref{equ:FTRL} the sequence of play $x^t \to x^*$ as $t \to \infty$ whenever $x^0 \in U$. 
+\end{definition}
+
+We say that a state $x^*$ is \textit{asymptotically stable} if it is \textit{stable} and \textit{attracting} \cite{HDRmertikopoulos}. Based on this notion of stability we can draw multiple implications. \\
+
+It was shown that no interior point, and therefore no \textit{fully mixed Nash equilibrium}, can be asymptotically stable under \ref{equ:FTRL} dynamics \cite[Theorem 1]{flokas}.  
+
+\begin{proposition}\label{prop:noInteriorStable}
+    A fully \textit{mixed NE} cannot be asymptotically stable under \ref{equ:FTRL}
+\end{proposition}
+
+Actually only strict Nash equilibria can be stable under \ref{equ:FTRL} \cite[Theorem 2]{flokas}. In fact, a stable state is equivalent to a strict Nash equilibrium \cite[Prop. 5.2]{mertikopoulos}
+
+\begin{proposition}\label{prop:StrictStableEquivalent}
+    The following are equivalent
+    \begin{enumerate}
+        \item $x^*$ is stable
+        \item $x^*$ is a strict Nash equilibrium
+    \end{enumerate}
+\end{proposition}
+    
+In particular if $x^*$ is \textit{globally stable} then $x^*$ is a unique Nash equilibrium \cite[Prop.2.5]{mertikopoulos}.
+
+\begin{proposition}\label{prop:GloballyStableUniqueNE}
+    If $x^*$ is globally stable, it is the game’s unique Nash equilibrium.
+\end{proposition}
+
+As shown in \cite[Theorem 4.7]{mertikopoulos} and \cite[Theorem 4.11]{mertikopoulos} respectively, we furthermore have that when no-regret dynamics are employed, the following two propositions hold.
+
+\begin{proposition}\label{prop:globalConvergence}
+    The induced sequence of play converges globally to a \textit{globally stable} equilibrium with probability $1$
+\end{proposition}
+
+\begin{proposition}\label{prop:localConvergence}
+    If $x^*$ is stable, then it is locally attracting with high probability
+\end{proposition}
+
+
+In the next chapter, I would like to give empirical evidence for all the discussed findings. I will run two concrete no-regret algorithms on simple two-player games and visualize their convergence behavior.
