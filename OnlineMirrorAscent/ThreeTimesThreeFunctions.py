@@ -3,6 +3,28 @@ import matplotlib.pyplot as plt
 
 
 def updateStrategy(iterations, payoff1, payoff2, strategy1init, strategy2init, algorithm):
+    """ makes one Gradient Ascent with Euclidean Projections or Online Mirror Ascent (with entropic regularizer)
+        #update step for every single point in the grid
+        Mirror Descent in this case uses entropic regularization: h(x) = sum_i=1^d(x[i] * log(x[i]))
+
+        Args:
+            :param iterations: (int): The number of iterations for determining step size eta
+            :param payoff1: (np.array)): numpy payoff matrix of row Player (Player1). Use utility maximization
+            :param payoff2: (np.array): numpy payoff matrix of column Player (Player2)
+            :param strategy1init: (np.array): initial strategy profile for player 1, e.g. np.array([1/9,2/9,6/9])
+            :param strategy2init: (np.array): initial strategy profile for player 2
+            :param algorithm: (string): choose from:
+                -"POGA": projected online gradient ascent, see Bachelor Thesis p.7
+                -"EGA": entropic gradient ascent <=> Online Mirror Ascent with entropic regularizer,
+                        see Bachelor Thesis p.11
+
+        Returns:
+            :return strategy1: (list of np.arrays): stores sequence of strategy profiles for player 1
+                                                    according to the algorithm
+            :return strategy2: (list of np.arrays): stores sequence of strategy profiles for player 2
+                                                    according to the algorithm
+    """
+
     # check if algorithm name is not allowed
     if algorithm != "POGA" and algorithm != "EGA":
         print("Please only use 'POGA' and 'EGA' as algorithm")
@@ -31,12 +53,12 @@ def updateStep(payoff1, payoff2, strategy1, strategy2, eta, algorithm):
         Args:
             :param payoff1: numpy payoff matrix of row Player (Player1)
             :param payoff2: numpy payoff matrix of column Player (Player2)
-            :param strategy1: Player1: [P(action1), P(action2), P(action3)]
+            :param strategy1: Player1: [P(action1), P(action2), P(action3)], e.g. np.array([1/9,2/9,6/9])
             :param strategy2: Player 2 accordingly
             :param eta: stepSize
             :param algorithm: (string): choose from:
-                -"POGA": projected online gradient ascent, see Shalev-Swartz p.144
-                -"EGA": entropic gradient ascent, see Shalev-Swartz p.144
+                -"POGA": projected online gradient ascent, see Bachelor Thesis p. 7
+                -"EGA": entropic gradient ascent, see Bachelor Thesis p. 11
 
         Returns:
             :return strategy1_after: (np.array): strategy profile of player 1 after one step
@@ -48,7 +70,6 @@ def updateStep(payoff1, payoff2, strategy1, strategy2, eta, algorithm):
     grad2 = strategy1.transpose().dot(payoff2)
 
     # projected online gradient ascent
-    # TODO: Doesnt work!
     if algorithm == "POGA":
         strategy1_after = strategy1 + eta * grad1
         strategy1_after = project(strategy1_after)
@@ -66,7 +87,7 @@ def updateStep(payoff1, payoff2, strategy1, strategy2, eta, algorithm):
 
 def project(v):
     """ borrowed from Mathieu Blondel (https://gist.github.com/mblondel/6f3b7aaad90606b98f71)
-        take a vector of any dimension and output the euclidean projection onto the simplex
+        take a vector of three dimensions and output the euclidean projection onto the simplex
 
     Args:
         :param: v: (array): the vector to be projected
@@ -87,7 +108,9 @@ def project(v):
 
 
 def calculateStepSize(iterations):
-    """ for online mirror descent step size should be: eta = sqrt(log(d))/(L*sqrt(2T)) (Shalev-Shwartz, p.140)
+    """ NOTE: I didnt tune the step Size to each specific game, but use some constant step size instead.
+
+    for online mirror descent step size should be: eta = sqrt(log(d))/(L*sqrt(2T)) (Shalev-Shwartz, p.140)
         where,
         d: dimensions (number of strategies)
         lip: Lipschitz constance
@@ -108,11 +131,31 @@ def calculateStepSize(iterations):
     lip = 1
     # step size
     # eta = np.sqrt(np.log(d)) / (lip * np.sqrt(2 * iterations))
+
+    # using constant step size
     eta = 0.1
     return eta
 
 
 def plot(iterations, strategy1, strategy2, gameName, strategyNames, algorithm, figsize=6, dpi=100):
+    """ will plot a line graph using matplotlib according to the sequence of play for each player
+
+         Args:
+            :param strategyNames: (array of strings): Strategy names according to syntax:
+                                strategyNames = [nameOfStrategy1Action1,nameOfStrategy1Action2, nameOfStrategy1Action3,
+                                                nameOfStrategy2Action1, nameOfStrategy2Action2, nameOfStrategy2Action3]
+            :param iterations: number of iterations played
+            :param strategy1: list of sequence of strategies played by player 1
+            :param strategy2: list of sequence of strategies played by player 2
+            :param gameName: (string): The name of the game that will be displayed as title
+            :param algorithm: (string): choose from:
+                -"POGA": projected online gradient ascent, see Bachelor Thesis p.7
+                -"EGA": entropic gradient ascent, see Bachelor Thesis p.11
+            :param figsize: optional size of figures
+            :param dpi: optional resolution of plot
+
+    """
+
     plt.figure(figsize=(figsize, figsize), dpi=dpi)
 
     labelPlot(gameName, algorithm)
@@ -161,9 +204,9 @@ def labelPlot(gameName, algorithm):
 
 def randomPlots(numberOfPlots, gameName, strategyNames, iterations,
                 payoff1, payoff2, algorithm, figsize=6, dpi=100):
-    """ generates random simplex vectors as ini
+    """ generates random simplex vectors as initial strategies for both players and runs the algorithm
 
-    :param numberOfPlots: trivial
+    :param numberOfPlots: number of plots that the function will plot. Be aware of memory constraint
     :param gameName: as above
     :param strategyNames: as above
     :param iterations: as above
@@ -183,7 +226,8 @@ def randomPlots(numberOfPlots, gameName, strategyNames, iterations,
 
 def systematicPlots(n_per_dim, gameName, strategyNames,
                     iterations, payoff1, payoff2, algorithm, figsize=6, dpi=100):
-    """ generates strategy vectors systamitically and then plots each combination of initial strategies.
+    """ generates strategy vectors systematically and then plots each combination of initial strategies.
+        Doesnt apply so well for EGA as function starts with boundary strategies
 
     :param n_per_dim: granularity of probability vector
     :param gameName: as above
@@ -210,13 +254,13 @@ def systematicPlots(n_per_dim, gameName, strategyNames,
 def calculateFrequencies(pInit, iterations, payoff1, payoff2, algorithm):
     """ calculates the empirical frequency distribution given an algorithm
 
-    :param pInit: array of 6 floats. First 3 denote the inital probability distribution of player 1, play2 accordingly
+    :param pInit: array of 6 floats. First 3 denote the initial probability distribution of player 1, play2 accordingly
     :param iterations: number of iterations (time)
     :param payoff1: payoff matrix player 1
     :param payoff2: payoff matrix player 2
     :param algorithm: (string): choose from:
-                -"POGA": projected online gradient ascent, see Shalev-Swartz p.144
-                -"EGA": entropic gradient ascent, see Shalev-Swartz p.144
+                -"POGA": projected online gradient ascent, see Bachelor Thesis p. 7
+                -"EGA": entropic gradient ascent, see Bachelor Thesis p. 11
 
     :return: frequencies: array of 6 frequency lists for each action
     """
@@ -231,8 +275,6 @@ def calculateFrequencies(pInit, iterations, payoff1, payoff2, algorithm):
 
     strategy1 = np.array([pInit[0], pInit[1], pInit[2]])
     strategy2 = np.array([pInit[0], pInit[1], pInit[2]])
-
-    # TODO: check feasibility
 
     for t in range(iterations):
 
@@ -273,15 +315,15 @@ def calculateFrequencies(pInit, iterations, payoff1, payoff2, algorithm):
 
 
 def plotFrequencies(iterations, frequencies, strategyNames, gameName, algorithm):
-    """
+    """ plots the empirical frequency of play for all strategies played
 
     :param iterations: number of iterations ()time
     :param frequencies: array of 6 lists generated by calculateFrequencies()
     :param strategyNames: array of 6 strings
     :param gameName: string
     :param algorithm: (string): choose from:
-                -"POGA": projected online gradient ascent, see Shalev-Swartz p.144
-                -"EGA": entropic gradient ascent, see Shalev-Swartz p.144
+                -"POGA": projected online gradient ascent, see Bachelor Thesis p. 7
+                -"EGA": entropic gradient ascent, see Bachelor Thesis p. 11
 
     """
     plt.figure(figsize=(6, 6), dpi=100)
@@ -306,7 +348,7 @@ def plotFrequencies(iterations, frequencies, strategyNames, gameName, algorithm)
 
 
 def labelTitle(gameName, algorithm):
-    """ Gives plot a title depending on the algorithm and the gamename provided in initialization
+    """ Gives plot a title depending on the algorithm and the gameName provided in initialization
 
     """
     if algorithm == "POGA":
